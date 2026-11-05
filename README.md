@@ -21,8 +21,13 @@ This repository focuses on **writing TLA+ specifications**. Model-checking algor
 | 5 | [token-ring](examples/token-ring) | `TokenRing` | Pass a token around a circular network | `TypeOK` |
 | 6 | [bank-transfer](examples/bank-transfer) | `BankTransfer` | Transfer units between two balances | `TypeOK`, `Conservation` |
 | 7 | [simple-queue](examples/simple-queue) | `SimpleQueue` | Enqueue and dequeue identical jobs in a bounded FIFO queue | `TypeOK` |
+| 8 | [vending-machine](examples/vending-machine) | `VendingMachine` | Accept coins, dispense stock, and refund | `TypeOK` |
+| 9 | [elevator](examples/elevator) | `Elevator` | Move between floors with door interlocks | `TypeOK` |
+| 10 | [request-reply](examples/request-reply) | `RequestReply` | Client request and server response | `TypeOK`, `ReplyHasRequester` |
+| 11 | [two-phase-commit](examples/two-phase-commit) | `TwoPhaseCommit` | Abstract two-participant voting and commit | `TypeOK`, `DisjointVotes`, `CommitOnlyOnUnanimity` |
+| 12 | [bounded-retry](examples/bounded-retry) | `BoundedRetry` | Retry a pending operation up to a configured limit | `TypeOK`, `NoPrematureFailure` |
 
-**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. These choices deliberately keep the teaching models small.
+**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. These choices deliberately keep the teaching models small.
 
 ## Run TLC
 
@@ -46,7 +51,14 @@ cd ../token-ring
 java -cp "$TLA_TOOLS" tlc2.TLC -config TokenRing.cfg TokenRing.tla
 ```
 
-All configurations select `Spec`, check one or more invariants, and disable deadlock detection because stuttering or terminal states can be legitimate for these teaching models.
+All configurations select `Spec`, check one or more invariants, and disable deadlock detection because terminal states or stuttering can be legitimate for these teaching models. The invariants do not establish fairness, eventual completion, or real-time behavior.
+
+To check the new two-phase commit example from the repository root:
+
+```bash
+cd examples/two-phase-commit
+java -cp "$TLA_TOOLS" tlc2.TLC -config TwoPhaseCommit.cfg TwoPhaseCommit.tla
+```
 
 ## Specification pattern
 
@@ -60,7 +72,7 @@ A successful TLC run supports only the checked properties in the selected finite
 
 ## Proposed extensions
 
-Dining philosophers, two-phase commit, request-reply protocols, leader election, distributed locks, and faulty variants with documented TLC counterexamples.
+Dining philosophers, leader election, distributed locks, failure-aware consensus, and faulty variants with documented TLC counterexamples.
 
 ## References
 
