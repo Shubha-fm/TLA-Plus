@@ -16,7 +16,7 @@ Init == /\ active = Nodes
 Elect ==
   /\ active # {}
   /\ leader = 0
-  /\ leader' = Max(active)
+  /\ leader' = CHOOSE n \in active : \A m \in active : m <= n
   /\ UNCHANGED active
 
 Fail(n) ==
