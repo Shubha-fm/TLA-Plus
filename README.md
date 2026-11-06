@@ -26,8 +26,13 @@ This repository focuses on **writing TLA+ specifications**. Model-checking algor
 | 10 | [request-reply](examples/request-reply) | `RequestReply` | Client request and server response | `TypeOK`, `ReplyHasRequester` |
 | 11 | [two-phase-commit](examples/two-phase-commit) | `TwoPhaseCommit` | Abstract two-participant voting and commit | `TypeOK`, `DisjointVotes`, `CommitOnlyOnUnanimity` |
 | 12 | [bounded-retry](examples/bounded-retry) | `BoundedRetry` | Retry a pending operation up to a configured limit | `TypeOK`, `NoPrematureFailure` |
+| 13 | [dining-philosophers](examples/dining-philosophers) | `DiningPhilosophers` | Atomic acquisition and release of adjacent forks | `TypeOK`, `NoAdjacentEating`, `ForkAccounting` |
+| 14 | [leader-election](examples/leader-election) | `LeaderElection` | Elect highest active node and model failures | `TypeOK`, `LeaderActive` |
+| 15 | [counting-semaphore](examples/counting-semaphore) | `CountingSemaphore` | Restrict concurrent client resource ownership | `TypeOK`, `CapacityBound` |
+| 16 | [railway-crossing](examples/railway-crossing) | `RailwayCrossing` | Protect a single track crossing with a gate | `TypeOK`, `CrossingProtected` |
+| 17 | [readers-writers](examples/readers-writers) | `ReadersWriters` | Allow concurrent readers and exclusive writer | `TypeOK`, `ExclusiveWrite` |
 
-**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. These choices deliberately keep the teaching models small.
+**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. The dining philosophers model acquires both forks atomically and does not model starvation or actual fork-by-fork locking. The leader-election model selects the highest active identifier atomically and does not implement an election message protocol. The railway crossing is a single-train abstraction with no sensor delays. The readers-writers model does not guarantee fairness. These choices deliberately keep the teaching models small.
 
 ## Run TLC
 
@@ -60,6 +65,24 @@ cd examples/two-phase-commit
 java -cp "$TLA_TOOLS" tlc2.TLC -config TwoPhaseCommit.cfg TwoPhaseCommit.tla
 ```
 
+## Recently added examples
+
+For the railway crossing model, from the repository root:
+
+```bash
+cd examples/railway-crossing
+java -cp "$TLA_TOOLS" tlc2.TLC -config RailwayCrossing.cfg RailwayCrossing.tla
+```
+
+For the dining philosophers model, from the repository root:
+
+```bash
+cd examples/dining-philosophers
+java -cp "$TLA_TOOLS" tlc2.TLC -config DiningPhilosophers.cfg DiningPhilosophers.tla
+```
+
+The five newest examples have their own TLC configurations. No TLC execution logs are included yet. Their results must be checked before claiming a formal verification pass.
+
 ## Specification pattern
 
 - `Init`: initial state
@@ -72,7 +95,7 @@ A successful TLC run supports only the checked properties in the selected finite
 
 ## Proposed extensions
 
-Dining philosophers, leader election, distributed locks, failure-aware consensus, and faulty variants with documented TLC counterexamples.
+Distributed locks, asynchronous leader-election messaging, failure-aware consensus, starvation/fairness properties, and faulty variants with documented TLC counterexamples.
 
 ## References
 
