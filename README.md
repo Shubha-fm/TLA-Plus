@@ -31,8 +31,13 @@ This repository focuses on **writing TLA+ specifications**. Model-checking algor
 | 15 | [counting-semaphore](examples/counting-semaphore) | `CountingSemaphore` | Restrict concurrent client resource ownership | `TypeOK`, `CapacityBound` |
 | 16 | [railway-crossing](examples/railway-crossing) | `RailwayCrossing` | Protect a single track crossing with a gate | `TypeOK`, `CrossingProtected` |
 | 17 | [readers-writers](examples/readers-writers) | `ReadersWriters` | Allow concurrent readers and exclusive writer | `TypeOK`, `ExclusiveWrite` |
+| 18 | [message-channel](examples/message-channel) | `MessageChannel` | Send and receive messages through a bounded FIFO channel | `TypeOK`, `Bounded` |
+| 19 | [distributed-lock](examples/distributed-lock) | `DistributedLock` | Grant one atomic lock owner at a time | `TypeOK` |
+| 20 | [cache-invalidation](examples/cache-invalidation) | `CacheInvalidation` | Invalidate stale cache data after source updates | `TypeOK`, `NoStaleValidCache` |
+| 21 | [sensor-alarm](examples/sensor-alarm) | `SensorAlarm` | Trigger an alarm according to a sensor threshold | `TypeOK`, `AlarmCorrect` |
+| 22 | [intersection-controller](examples/intersection-controller) | `IntersectionController` | Coordinate two traffic directions | `TypeOK`, `NoConflictingGreens` |
 
-**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. The dining philosophers model acquires both forks atomically and does not model starvation or actual fork-by-fork locking. The leader-election model selects the highest active identifier atomically and does not implement an election message protocol. The railway crossing is a single-train abstraction with no sensor delays. The readers-writers model does not guarantee fairness. These choices deliberately keep the teaching models small.
+**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. The dining philosophers model acquires both forks atomically and does not model starvation or actual fork-by-fork locking. The leader-election model selects the highest active identifier atomically and does not implement an election message protocol. The railway crossing is a single-train abstraction with no sensor delays. The readers-writers model does not guarantee fairness. The message channel omits message loss and delivery failures. The distributed lock assumes atomic acquire and release without network failures or starvation guarantees. The cache-invalidation model uses a single source version and one cache. Sensor readings update their alarm atomically. The intersection controller omits timing and pedestrian signals. These choices deliberately keep the teaching models small.
 
 ## Run TLC
 
@@ -83,6 +88,24 @@ java -cp "$TLA_TOOLS" tlc2.TLC -config DiningPhilosophers.cfg DiningPhilosophers
 
 The five newest examples have their own TLC configurations. No TLC execution logs are included yet. Their results must be checked before claiming a formal verification pass.
 
+## Latest additions (examples 18–22)
+
+Each new folder contains a matching `.tla` specification and `.cfg` file. From the repository root, run the new cache-invalidation example:
+
+```bash
+cd examples/cache-invalidation
+java -cp "$TLA_TOOLS" tlc2.TLC -config CacheInvalidation.cfg CacheInvalidation.tla
+```
+
+For the intersection model:
+
+```bash
+cd examples/intersection-controller
+java -cp "$TLA_TOOLS" tlc2.TLC -config IntersectionController.cfg IntersectionController.tla
+```
+
+The traffic controller checks a safety invariant but does not establish traffic fairness or timing constraints. The distributed lock is an abstract centralized owner variable, not a network protocol. These examples have **not been executed with TLC in this update**.
+
 ## Specification pattern
 
 - `Init`: initial state
@@ -95,7 +118,7 @@ A successful TLC run supports only the checked properties in the selected finite
 
 ## Proposed extensions
 
-Distributed locks, asynchronous leader-election messaging, failure-aware consensus, starvation/fairness properties, and faulty variants with documented TLC counterexamples.
+Asynchronous leader-election messaging, failure-aware consensus, starvation/fairness properties, distributed lock failure recovery, and faulty variants with documented TLC counterexamples.
 
 ## References
 
