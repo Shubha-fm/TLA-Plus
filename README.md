@@ -41,8 +41,13 @@ This repository focuses on **writing TLA+ specifications**. Model-checking algor
 | 25 | [job-scheduler](examples/job-scheduler) | `JobScheduler` | Schedule one job at a time while preserving job ownership | `TypeOK`, `AtMostOneRunning`, `NoLostJobs`, `DisjointStates` |
 | 26 | [access-control](examples/access-control) | `AccessControl` | Grant and revoke authorization for an active session | `TypeOK`, `OnlyAuthorizedSession` |
 | 27 | [backup-recovery](examples/backup-recovery) | `BackupRecovery` | Model versioned backup, crashes, and recovery | `TypeOK`, `BackupNotAhead` |
+| 28 | [handshake-protocol](examples/handshake-protocol) | `HandshakeProtocol` | Three-step client-server handshake and disconnect | `TypeOK`, `ConnectionAgreement` |
+| 29 | [inventory-order](examples/inventory-order) | `InventoryOrder` | Reserve, cancel, and ship inventory | `TypeOK`, `StockConserved` |
+| 30 | [battery-controller](examples/battery-controller) | `BatteryController` | Charging and consumption with capacity interlock | `TypeOK`, `NeverChargeWhenFull` |
+| 31 | [replica-sync](examples/replica-sync) | `ReplicaSync` | Primary writes and replica synchronization | `TypeOK`, `ReplicaNotAhead`, `SyncAccurate` |
+| 32 | [pedestrian-crossing](examples/pedestrian-crossing) | `PedestrianCrossing` | Coordinate pedestrian and vehicle signals | `TypeOK`, `NoVehiclePedestrianConflict` |
 
-**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. The dining philosophers model acquires both forks atomically and does not model starvation or actual fork-by-fork locking. The leader-election model selects the highest active identifier atomically and does not implement an election message protocol. The railway crossing is a single-train abstraction with no sensor delays. The readers-writers model does not guarantee fairness. The message channel omits message loss and delivery failures. The distributed lock assumes atomic acquire and release without network failures or starvation guarantees. The cache-invalidation model uses a single source version and one cache. Sensor readings update their alarm atomically. The intersection controller omits timing and pedestrian signals. The parking lot tracks three named cars and a bounded capacity. The rate limiter treats windows as nondeterministic resets without wall-clock time. The scheduler runs at most one job and does not address starvation. The access-control model revokes an active session immediately. The recovery model assumes atomic backup and recovery, with no partial writes. These choices deliberately keep the teaching models small.
+**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. The dining philosophers model acquires both forks atomically and does not model starvation or actual fork-by-fork locking. The leader-election model selects the highest active identifier atomically and does not implement an election message protocol. The railway crossing is a single-train abstraction with no sensor delays. The readers-writers model does not guarantee fairness. The message channel omits message loss and delivery failures. The distributed lock assumes atomic acquire and release without network failures or starvation guarantees. The cache-invalidation model uses a single source version and one cache. Sensor readings update their alarm atomically. The intersection controller omits timing and pedestrian signals. The parking lot tracks three named cars and a bounded capacity. The rate limiter treats windows as nondeterministic resets without wall-clock time. The scheduler runs at most one job and does not address starvation. The access-control model revokes an active session immediately. The recovery model assumes atomic backup and recovery, with no partial writes. The handshake uses reliable atomic messages with no timeouts. Inventory operations are unit-sized and atomic. Battery charging is discrete and omits thermal behavior. Replica synchronization uses monotonic versions without network loss or conflicts. The pedestrian model omits amber phases and timing constraints. These choices deliberately keep the teaching models small.
 
 ## Run TLC
 
@@ -75,25 +80,25 @@ cd examples/two-phase-commit
 java -cp "$TLA_TOOLS" tlc2.TLC -config TwoPhaseCommit.cfg TwoPhaseCommit.tla
 ```
 
-## Latest additions (examples 23–27)
+## Latest additions (examples 28–32)
 
-Five new finite-state educational models cover parking management, request throttling, a single-worker job scheduler, session authorization, and backup/recovery. Each example contains a `.tla` file and a matching `.cfg` file.
+The five new specifications cover connection handshakes, inventory accounting, charging safety, versioned replication, and pedestrian crossing coordination. Each has a matching TLC configuration.
 
-Run a new example from the repository root:
-
-```bash
-cd examples/job-scheduler
-java -cp "$TLA_TOOLS" tlc2.TLC -config JobScheduler.cfg JobScheduler.tla
-```
-
-Run the recovery example separately:
+Run the new inventory model from the repository root:
 
 ```bash
-cd examples/backup-recovery
-java -cp "$TLA_TOOLS" tlc2.TLC -config BackupRecovery.cfg BackupRecovery.tla
+cd examples/inventory-order
+java -cp "$TLA_TOOLS" tlc2.TLC -config InventoryOrder.cfg InventoryOrder.tla
 ```
 
-The scheduler does not model preemption or fairness. The backup model does not model corrupted storage or concurrent writes. These examples have been uploaded but **no TLC verification result is claimed** without a recorded TLC run.
+Run replica synchronization separately from the repository root:
+
+```bash
+cd examples/replica-sync
+java -cp "$TLA_TOOLS" tlc2.TLC -config ReplicaSync.cfg ReplicaSync.tla
+```
+
+These are small finite abstractions. They do not establish correctness of full network, hardware, or timing implementations. No TLC verification result is claimed until actual TLC logs are produced.
 
 ## Specification pattern
 
@@ -107,7 +112,7 @@ A successful TLC run supports only the checked properties in the selected finite
 
 ## Proposed extensions
 
-Asynchronous leader-election messaging, failure-aware consensus, starvation/fairness properties, recovery from partial writes, and faulty variants with documented TLC counterexamples.
+Asynchronous leader-election messaging, failure-aware consensus, fairness properties, timeout-aware handshakes, multi-replica failure handling, and faulty variants with documented TLC counterexamples.
 
 ## References
 
