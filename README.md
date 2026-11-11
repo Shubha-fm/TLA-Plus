@@ -46,8 +46,13 @@ This repository focuses on **writing TLA+ specifications**. Model-checking algor
 | 30 | [battery-controller](examples/battery-controller) | `BatteryController` | Charging and consumption with capacity interlock | `TypeOK`, `NeverChargeWhenFull` |
 | 31 | [replica-sync](examples/replica-sync) | `ReplicaSync` | Primary writes and replica synchronization | `TypeOK`, `ReplicaNotAhead`, `SyncAccurate` |
 | 32 | [pedestrian-crossing](examples/pedestrian-crossing) | `PedestrianCrossing` | Coordinate pedestrian and vehicle signals | `TypeOK`, `NoVehiclePedestrianConflict` |
+| 33 | [thermostat](examples/thermostat) | `Thermostat` | Heat and cool within a bounded temperature range | `TypeOK`, `HeaterPolicy` |
+| 34 | [quorum-approval](examples/quorum-approval) | `QuorumApproval` | Gather three votes and require a quorum of two | `TypeOK`, `NoDoubleVoting`, `DecisionJustified` |
+| 35 | [bounded-pipeline](examples/bounded-pipeline) | `BoundedPipeline` | Transfer jobs through a one-at-a-time processing stage | `TypeOK`, `Conservation` |
+| 36 | [file-locking](examples/file-locking) | `FileLocking` | Permit shared readers or a single exclusive writer | `TypeOK`, `ExclusiveWriter` |
+| 37 | [deployment-rollback](examples/deployment-rollback) | `DeploymentRollback` | Stage candidate deployment and roll back on failure | `TypeOK`, `ActiveNotAhead`, `RollbackPreservesActive` |
 
-**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. The dining philosophers model acquires both forks atomically and does not model starvation or actual fork-by-fork locking. The leader-election model selects the highest active identifier atomically and does not implement an election message protocol. The railway crossing is a single-train abstraction with no sensor delays. The readers-writers model does not guarantee fairness. The message channel omits message loss and delivery failures. The distributed lock assumes atomic acquire and release without network failures or starvation guarantees. The cache-invalidation model uses a single source version and one cache. Sensor readings update their alarm atomically. The intersection controller omits timing and pedestrian signals. The parking lot tracks three named cars and a bounded capacity. The rate limiter treats windows as nondeterministic resets without wall-clock time. The scheduler runs at most one job and does not address starvation. The access-control model revokes an active session immediately. The recovery model assumes atomic backup and recovery, with no partial writes. The handshake uses reliable atomic messages with no timeouts. Inventory operations are unit-sized and atomic. Battery charging is discrete and omits thermal behavior. Replica synchronization uses monotonic versions without network loss or conflicts. The pedestrian model omits amber phases and timing constraints. These choices deliberately keep the teaching models small.
+**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. The dining philosophers model acquires both forks atomically and does not model starvation or actual fork-by-fork locking. The leader-election model selects the highest active identifier atomically and does not implement an election message protocol. The railway crossing is a single-train abstraction with no sensor delays. The readers-writers model does not guarantee fairness. The message channel omits message loss and delivery failures. The distributed lock assumes atomic acquire and release without network failures or starvation guarantees. The cache-invalidation model uses a single source version and one cache. Sensor readings update their alarm atomically. The intersection controller omits timing and pedestrian signals. The parking lot tracks three named cars and a bounded capacity. The rate limiter treats windows as nondeterministic resets without wall-clock time. The scheduler runs at most one job and does not address starvation. The access-control model revokes an active session immediately. The recovery model assumes atomic backup and recovery, with no partial writes. The handshake uses reliable atomic messages with no timeouts. Inventory operations are unit-sized and atomic. Battery charging is discrete and omits thermal behavior. Replica synchronization uses monotonic versions without network loss or conflicts. The pedestrian model omits amber phases and timing constraints. The thermostat model uses discrete temperature steps and has no timed environment. Quorum approval assumes one vote per named voter and no distributed messages. The bounded pipeline has one processing slot and no job identities. File locking models shared readers and a single writer, but omits fairness and file contents. Deployment rollback treats testing, promotion, and rollback as atomic actions and does not model partial deployment. These choices deliberately keep the teaching models small.
 
 ## Run TLC
 
@@ -80,25 +85,25 @@ cd examples/two-phase-commit
 java -cp "$TLA_TOOLS" tlc2.TLC -config TwoPhaseCommit.cfg TwoPhaseCommit.tla
 ```
 
-## Latest additions (examples 28–32)
+## Latest additions (examples 33–37)
 
-The five new specifications cover connection handshakes, inventory accounting, charging safety, versioned replication, and pedestrian crossing coordination. Each has a matching TLC configuration.
+The five newly added finite-state specifications cover thermostatic control, quorum approval, a bounded work pipeline, reader/writer file locks, and deployment rollback. Each example has a matching `.cfg` file for TLC.
 
-Run the new inventory model from the repository root:
-
-```bash
-cd examples/inventory-order
-java -cp "$TLA_TOOLS" tlc2.TLC -config InventoryOrder.cfg InventoryOrder.tla
-```
-
-Run replica synchronization separately from the repository root:
+Run one example from the repository root (after setting `TLA_TOOLS` above):
 
 ```bash
-cd examples/replica-sync
-java -cp "$TLA_TOOLS" tlc2.TLC -config ReplicaSync.cfg ReplicaSync.tla
+cd examples/quorum-approval
+java -cp "$TLA_TOOLS" tlc2.TLC -config QuorumApproval.cfg QuorumApproval.tla
 ```
 
-These are small finite abstractions. They do not establish correctness of full network, hardware, or timing implementations. No TLC verification result is claimed until actual TLC logs are produced.
+Run another example from the repository root:
+
+```bash
+cd examples/deployment-rollback
+java -cp "$TLA_TOOLS" tlc2.TLC -config DeploymentRollback.cfg DeploymentRollback.tla
+```
+
+The models are educational abstractions. In particular, approval and deployment decisions are atomic, and neither network faults nor fairness are represented. GitHub commits confirm the files were uploaded, **not** that TLC has verified them; no TLC execution logs have been captured in this update.
 
 ## Specification pattern
 
@@ -112,7 +117,7 @@ A successful TLC run supports only the checked properties in the selected finite
 
 ## Proposed extensions
 
-Asynchronous leader-election messaging, failure-aware consensus, fairness properties, timeout-aware handshakes, multi-replica failure handling, and faulty variants with documented TLC counterexamples.
+Asynchronous leader-election messaging, failure-aware consensus, fairness and liveness properties, timeout-aware handshakes, partial deployment failures, and faulty variants with documented TLC counterexamples.
 
 ## References
 
