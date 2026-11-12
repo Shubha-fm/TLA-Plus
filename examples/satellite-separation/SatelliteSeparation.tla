@@ -1,5 +1,5 @@
 ------------------------- MODULE SatelliteSeparation -------------------------
-EXTENDS Integers
+EXTENDS Naturals
 
 CONSTANTS MaxPosition, MinSeparation
 ASSUME /\ MaxPosition \in Nat
