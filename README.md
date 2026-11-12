@@ -51,8 +51,13 @@ This repository focuses on **writing TLA+ specifications**. Model-checking algor
 | 35 | [bounded-pipeline](examples/bounded-pipeline) | `BoundedPipeline` | Transfer jobs through a one-at-a-time processing stage | `TypeOK`, `Conservation` |
 | 36 | [file-locking](examples/file-locking) | `FileLocking` | Permit shared readers or a single exclusive writer | `TypeOK`, `ExclusiveWriter` |
 | 37 | [deployment-rollback](examples/deployment-rollback) | `DeploymentRollback` | Stage candidate deployment and roll back on failure | `TypeOK`, `ActiveNotAhead`, `RollbackPreservesActive` |
+| 38 | [circuit-breaker](examples/circuit-breaker) | `CircuitBreaker` | Open a service circuit after repeated failures and probe recovery | `TypeOK`, `OpenAfterLimit` |
+| 39 | [rover-obstacle](examples/rover-obstacle) | `RoverObstacle` | Halt rover motion when an obstacle is detected | `TypeOK`, `StopOnObstacle`, `NoOverrun` |
+| 40 | [lease-manager](examples/lease-manager) | `LeaseManager` | Acquire, renew, release, and expire an exclusive lease | `TypeOK`, `LeaseConsistency` |
+| 41 | [watchdog-monitor](examples/watchdog-monitor) | `WatchdogMonitor` | Track heartbeats and raise an alarm at a timeout | `TypeOK`, `AlarmAtTimeout` |
+| 42 | [round-robin-scheduler](examples/round-robin-scheduler) | `RoundRobinScheduler` | Cycle through a finite set of tasks | `TypeOK` |
 
-**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. The dining philosophers model acquires both forks atomically and does not model starvation or actual fork-by-fork locking. The leader-election model selects the highest active identifier atomically and does not implement an election message protocol. The railway crossing is a single-train abstraction with no sensor delays. The readers-writers model does not guarantee fairness. The message channel omits message loss and delivery failures. The distributed lock assumes atomic acquire and release without network failures or starvation guarantees. The cache-invalidation model uses a single source version and one cache. Sensor readings update their alarm atomically. The intersection controller omits timing and pedestrian signals. The parking lot tracks three named cars and a bounded capacity. The rate limiter treats windows as nondeterministic resets without wall-clock time. The scheduler runs at most one job and does not address starvation. The access-control model revokes an active session immediately. The recovery model assumes atomic backup and recovery, with no partial writes. The handshake uses reliable atomic messages with no timeouts. Inventory operations are unit-sized and atomic. Battery charging is discrete and omits thermal behavior. Replica synchronization uses monotonic versions without network loss or conflicts. The pedestrian model omits amber phases and timing constraints. The thermostat model uses discrete temperature steps and has no timed environment. Quorum approval assumes one vote per named voter and no distributed messages. The bounded pipeline has one processing slot and no job identities. File locking models shared readers and a single writer, but omits fairness and file contents. Deployment rollback treats testing, promotion, and rollback as atomic actions and does not model partial deployment. These choices deliberately keep the teaching models small.
+**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. The dining philosophers model acquires both forks atomically and does not model starvation or actual fork-by-fork locking. The leader-election model selects the highest active identifier atomically and does not implement an election message protocol. The railway crossing is a single-train abstraction with no sensor delays. The readers-writers model does not guarantee fairness. The message channel omits message loss and delivery failures. The distributed lock assumes atomic acquire and release without network failures or starvation guarantees. The cache-invalidation model uses a single source version and one cache. Sensor readings update their alarm atomically. The intersection controller omits timing and pedestrian signals. The parking lot tracks three named cars and a bounded capacity. The rate limiter treats windows as nondeterministic resets without wall-clock time. The scheduler runs at most one job and does not address starvation. The access-control model revokes an active session immediately. The recovery model assumes atomic backup and recovery, with no partial writes. The handshake uses reliable atomic messages with no timeouts. Inventory operations are unit-sized and atomic. Battery charging is discrete and omits thermal behavior. Replica synchronization uses monotonic versions without network loss or conflicts. The pedestrian model omits amber phases and timing constraints. The thermostat model uses discrete temperature steps and has no timed environment. Quorum approval assumes one vote per named voter and no distributed messages. The bounded pipeline has one processing slot and no job identities. File locking models shared readers and a single writer, but omits fairness and file contents. Deployment rollback treats testing, promotion, and rollback as atomic actions and does not model partial deployment. The circuit breaker models discrete failure counts and recovery probes without real service calls. Rover obstacle detection and braking are atomic, so sensor latency is not represented. Lease time advances in abstract ticks without clock drift. The watchdog models heartbeat resets but not message loss. Round-robin scheduling assumes one atomic step per turn, with no task execution time or fairness proof. These choices deliberately keep the teaching models small.
 
 ## Run TLC
 
@@ -85,25 +90,29 @@ cd examples/two-phase-commit
 java -cp "$TLA_TOOLS" tlc2.TLC -config TwoPhaseCommit.cfg TwoPhaseCommit.tla
 ```
 
-## Latest additions (examples 33–37)
+## Latest additions (examples 38–42)
 
-The five newly added finite-state specifications cover thermostatic control, quorum approval, a bounded work pipeline, reader/writer file locks, and deployment rollback. Each example has a matching `.cfg` file for TLC.
+Five educational models have been added: a service circuit breaker, a rover obstacle stop controller, an expiring lease, a heartbeat watchdog, and a round-robin scheduler. Each includes a `.tla` file and a matching TLC `.cfg`.
 
-Run one example from the repository root (after setting `TLA_TOOLS` above):
-
-```bash
-cd examples/quorum-approval
-java -cp "$TLA_TOOLS" tlc2.TLC -config QuorumApproval.cfg QuorumApproval.tla
-```
-
-Run another example from the repository root:
+Run the rover safety model from the repository root:
 
 ```bash
-cd examples/deployment-rollback
-java -cp "$TLA_TOOLS" tlc2.TLC -config DeploymentRollback.cfg DeploymentRollback.tla
+cd examples/rover-obstacle
+java -cp "$TLA_TOOLS" tlc2.TLC -config RoverObstacle.cfg RoverObstacle.tla
 ```
 
-The models are educational abstractions. In particular, approval and deployment decisions are atomic, and neither network faults nor fairness are represented. GitHub commits confirm the files were uploaded, **not** that TLC has verified them; no TLC execution logs have been captured in this update.
+Run the lease manager separately from the repository root:
+
+```bash
+cd examples/lease-manager
+java -cp "$TLA_TOOLS" tlc2.TLC -config LeaseManager.cfg LeaseManager.tla
+```
+
+### Model scope and verification status
+
+These models use bounded, abstract states. The rover does not model physical braking distance or sensor delays. The lease and watchdog advance in logical ticks rather than real time. The circuit breaker has no network faults and the scheduler does not verify fairness or response times.
+
+**GitHub uploads are confirmed, but TLC model-checking results have not been collected for these new models.** Run the supplied configurations before reporting any verified claims.
 
 ## Specification pattern
 
@@ -117,7 +126,7 @@ A successful TLC run supports only the checked properties in the selected finite
 
 ## Proposed extensions
 
-Asynchronous leader-election messaging, failure-aware consensus, fairness and liveness properties, timeout-aware handshakes, partial deployment failures, and faulty variants with documented TLC counterexamples.
+Asynchronous leader-election messaging, failure-aware consensus, fairness and liveness properties, timeout-aware handshakes, rover braking-distance abstractions, and faulty variants with documented TLC counterexamples.
 
 ## References
 
