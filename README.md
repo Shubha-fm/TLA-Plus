@@ -61,8 +61,13 @@ This repository focuses on **writing TLA+ specifications**. Model-checking algor
 | 45 | [emergency-stop](examples/emergency-stop) | `EmergencyStop` | Latch an emergency stop until reset and restart | `TypeOK`, `StoppedOnEmergency` |
 | 46 | [bounded-broadcast](examples/bounded-broadcast) | `BoundedBroadcast` | Publish once and track delivery to three recipients | `TypeOK`, `OnlyAfterPublish` |
 | 47 | [satellite-separation](examples/satellite-separation) | `SatelliteSeparation` | Allow bounded moves only when separation remains safe | `TypeOK`, `SafeSeparation` |
+| 48 | [railway-platform](examples/railway-platform) | `RailwayPlatform` | Track platform occupancy and train accounting | `TypeOK`, `PlatformCapacity`, `TrainAccounting` |
+| 49 | [transaction-commit](examples/transaction-commit) | `TransactionCommit` | Prepare, commit, abort, and reset a bounded transaction | `TypeOK`, `PreparedHasPending` |
+| 50 | [dual-sensor-gate](examples/dual-sensor-gate) | `DualSensorGate` | Open only if both sensor conditions hold | `TypeOK`, `OnlyOpenOnAgreement` |
+| 51 | [bounded-event-log](examples/bounded-event-log) | `BoundedEventLog` | Append or clear events in a bounded log | `TypeOK`, `WithinCapacity` |
+| 52 | [drone-geofence](examples/drone-geofence) | `DroneGeofence` | Move a drone within a one-dimensional boundary | `TypeOK`, `InsideGeofence` |
 
-**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. The dining philosophers model acquires both forks atomically and does not model starvation or actual fork-by-fork locking. The leader-election model selects the highest active identifier atomically and does not implement an election message protocol. The railway crossing is a single-train abstraction with no sensor delays. The readers-writers model does not guarantee fairness. The message channel omits message loss and delivery failures. The distributed lock assumes atomic acquire and release without network failures or starvation guarantees. The cache-invalidation model uses a single source version and one cache. Sensor readings update their alarm atomically. The intersection controller omits timing and pedestrian signals. The parking lot tracks three named cars and a bounded capacity. The rate limiter treats windows as nondeterministic resets without wall-clock time. The scheduler runs at most one job and does not address starvation. The access-control model revokes an active session immediately. The recovery model assumes atomic backup and recovery, with no partial writes. The handshake uses reliable atomic messages with no timeouts. Inventory operations are unit-sized and atomic. Battery charging is discrete and omits thermal behavior. Replica synchronization uses monotonic versions without network loss or conflicts. The pedestrian model omits amber phases and timing constraints. The thermostat model uses discrete temperature steps and has no timed environment. Quorum approval assumes one vote per named voter and no distributed messages. The bounded pipeline has one processing slot and no job identities. File locking models shared readers and a single writer, but omits fairness and file contents. Deployment rollback treats testing, promotion, and rollback as atomic actions and does not model partial deployment. The circuit breaker models discrete failure counts and recovery probes without real service calls. Rover obstacle detection and braking are atomic, so sensor latency is not represented. Lease time advances in abstract ticks without clock drift. The watchdog models heartbeat resets but not message loss. Round-robin scheduling assumes one atomic step per turn, with no task execution time or fairness proof. Payment escrow assumes atomic financial transfers. API idempotency assumes a durable processed-ID set and counts effects rather than executing them. Emergency stop is an atomic logical latch without actuator delay. Broadcast models one publication and no delivery loss. Satellite separation uses one-dimensional positions and discrete unit moves, not orbital dynamics or continuous collision checking. These choices deliberately keep the teaching models small.
+**Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. The dining philosophers model acquires both forks atomically and does not model starvation or actual fork-by-fork locking. The leader-election model selects the highest active identifier atomically and does not implement an election message protocol. The railway crossing is a single-train abstraction with no sensor delays. The readers-writers model does not guarantee fairness. The message channel omits message loss and delivery failures. The distributed lock assumes atomic acquire and release without network failures or starvation guarantees. The cache-invalidation model uses a single source version and one cache. Sensor readings update their alarm atomically. The intersection controller omits timing and pedestrian signals. The parking lot tracks three named cars and a bounded capacity. The rate limiter treats windows as nondeterministic resets without wall-clock time. The scheduler runs at most one job and does not address starvation. The access-control model revokes an active session immediately. The recovery model assumes atomic backup and recovery, with no partial writes. The handshake uses reliable atomic messages with no timeouts. Inventory operations are unit-sized and atomic. Battery charging is discrete and omits thermal behavior. Replica synchronization uses monotonic versions without network loss or conflicts. The pedestrian model omits amber phases and timing constraints. The thermostat model uses discrete temperature steps and has no timed environment. Quorum approval assumes one vote per named voter and no distributed messages. The bounded pipeline has one processing slot and no job identities. File locking models shared readers and a single writer, but omits fairness and file contents. Deployment rollback treats testing, promotion, and rollback as atomic actions and does not model partial deployment. The circuit breaker models discrete failure counts and recovery probes without real service calls. Rover obstacle detection and braking are atomic, so sensor latency is not represented. Lease time advances in abstract ticks without clock drift. The watchdog models heartbeat resets but not message loss. Round-robin scheduling assumes one atomic step per turn, with no task execution time or fairness proof. Payment escrow assumes atomic financial transfers. API idempotency assumes a durable processed-ID set and counts effects rather than executing them. Emergency stop is an atomic logical latch without actuator delay. Broadcast models one publication and no delivery loss. Satellite separation uses one-dimensional positions and discrete unit moves, not orbital dynamics or continuous collision checking. The railway platform is a one-track, single-platform abstraction. Transaction commitment is atomic, without crash recovery or distributed participants. Sensor readings and gate decisions are updated together, with no sensor latency. The event log omits durable storage and concurrent writers. The drone model is one-dimensional, with no weather, dynamics, or GPS uncertainty. These choices deliberately keep the teaching models small.
 
 ## Run TLC
 
@@ -95,27 +100,27 @@ cd examples/two-phase-commit
 java -cp "$TLA_TOOLS" tlc2.TLC -config TwoPhaseCommit.cfg TwoPhaseCommit.tla
 ```
 
-## Latest additions (examples 43–47)
+## Latest additions (examples 48–52)
 
-Five new bounded models cover escrow payments, idempotent API requests, emergency stops, single-message broadcast, and simplified satellite separation. Each example contains a `.tla` specification and matching TLC `.cfg` file.
+Five finite-state teaching models have been added: a single-track railway platform, a transaction lifecycle, a dual-sensor gate, a bounded event log, and a one-dimensional drone geofence. Each contains a `.tla` specification and a matching `.cfg` file.
 
-To check payment conservation, from the repository root:
-
-```bash
-cd examples/payment-escrow
-java -cp "$TLA_TOOLS" tlc2.TLC -config PaymentEscrow.cfg PaymentEscrow.tla
-```
-
-To check the one-dimensional satellite separation model, start again from the repository root:
+To check railway platform safety, from the repository root:
 
 ```bash
-cd examples/satellite-separation
-java -cp "$TLA_TOOLS" tlc2.TLC -config SatelliteSeparation.cfg SatelliteSeparation.tla
+cd examples/railway-platform
+java -cp "$TLA_TOOLS" tlc2.TLC -config RailwayPlatform.cfg RailwayPlatform.tla
 ```
 
-The satellite model uses bounded positions and unit steps, not orbital mechanics; the emergency stop models immediate logical halting, not physical braking. Other examples also abstract from network failures, concurrency timing, and implementation faults.
+To check the sensor gate, start again from the repository root:
 
-**Verification status:** GitHub upload and commits are confirmed. These new models have not been executed in TLC here; no model-checker PASS or state counts are claimed.
+```bash
+cd examples/dual-sensor-gate
+java -cp "$TLA_TOOLS" tlc2.TLC -config DualSensorGate.cfg DualSensorGate.tla
+```
+
+**Limitations:** Railway occupancy is atomic, transaction commits omit crash recovery, sensors do not model latency or failure, and drone motion uses a bounded one-dimensional position. These models are examples of formal specification, not evidence of implementation safety.
+
+**Verification status:** Source uploads are confirmed, but the new models have not yet been run through TLC. No verified PASS, state counts, or liveness conclusions are claimed.
 
 ## Specification pattern
 
@@ -129,7 +134,7 @@ A successful TLC run supports only the checked properties in the selected finite
 
 ## Proposed extensions
 
-Asynchronous leader-election messaging, failure-aware consensus, fairness and liveness properties, delayed emergency-stop response, multi-dimensional separation, and faulty variants with documented TLC counterexamples.
+Automated TLC checks with recorded results, asynchronous leader election, failure-aware consensus, fairness and liveness properties, sensor fault injection, and multidimensional collision safety.
 
 ## References
 
