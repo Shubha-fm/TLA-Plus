@@ -106,6 +106,11 @@ This repository focuses on **writing TLA+ specifications**. Model-checking algor
 | 90 | [connect-three-game](examples/connect-three-game) | `ConnectThreeGame` | Drop alternating marks into a 3-by-3 gravity board | `TypeOK`, `NoTwoWinners`, `Gravity` |
 | 91 | [dice-race-game](examples/dice-race-game) | `DiceRaceGame` | Alternate bounded dice steps toward a finish line | `TypeOK`, `WinnerReachedGoal` |
 | 92 | [tower-of-hanoi](examples/tower-of-hanoi) | `TowerOfHanoi` | Move three ordered discs between pegs in up to seven moves | `TypeOK`, `MovedWithinBudget` |
+| 93 | [lights-out-puzzle](examples/lights-out-puzzle) | `LightsOutPuzzle` | Toggle a 2-by-2 light grid with a limited number of presses | `TypeOK`, `PressLimit` |
+| 94 | [mastermind-mini](examples/mastermind-mini) | `MastermindMini` | Guess a two-peg secret within a bounded number of attempts | `TypeOK`, `WinRequiresMatch`, `NoGuessBeforeAttempt` |
+| 95 | [sliding-tile-puzzle](examples/sliding-tile-puzzle) | `SlidingTilePuzzle` | Slide numbered tiles into the empty cell without losing pieces | `TypeOK`, `TilePreservation` |
+| 96 | [memory-pair-game](examples/memory-pair-game) | `MemoryPairGame` | Reveal cards and collect matching symbol pairs | `TypeOK`, `SecondRequiresFirst`, `MatchedInPairs`, `NoRepeatedSelection` |
+| 97 | [simon-sequence-game](examples/simon-sequence-game) | `SimonSequenceGame` | Repeat a three-color sequence and track win/loss state | `TypeOK`, `WinMeansComplete`, `PlayingNotComplete` |
 
 **Model scope:** The producer-consumer example abstracts away item identities and process interleavings. The token-ring example stores only the current token holder. The queue example uses identical `"job"` items. The bank-transfer example assumes atomic transfers. The two-phase commit example models coordinator decision logic, not networking, message loss, crashes, or recovery. The elevator example checks bounded floors and door states, and allows motion only with the door closed. The retry example abstracts away elapsed time. The dining philosophers model acquires both forks atomically and does not model starvation or actual fork-by-fork locking. The leader-election model selects the highest active identifier atomically and does not implement an election message protocol. The railway crossing is a single-train abstraction with no sensor delays. The readers-writers model does not guarantee fairness. The message channel omits message loss and delivery failures. The distributed lock assumes atomic acquire and release without network failures or starvation guarantees. The cache-invalidation model uses a single source version and one cache. Sensor readings update their alarm atomically. The intersection controller omits timing and pedestrian signals. The parking lot tracks three named cars and a bounded capacity. The rate limiter treats windows as nondeterministic resets without wall-clock time. The scheduler runs at most one job and does not address starvation. The access-control model revokes an active session immediately. The recovery model assumes atomic backup and recovery, with no partial writes. The handshake uses reliable atomic messages with no timeouts. Inventory operations are unit-sized and atomic. Battery charging is discrete and omits thermal behavior. Replica synchronization uses monotonic versions without network loss or conflicts. The pedestrian model omits amber phases and timing constraints. The thermostat model uses discrete temperature steps and has no timed environment. Quorum approval assumes one vote per named voter and no distributed messages. The bounded pipeline has one processing slot and no job identities. File locking models shared readers and a single writer, but omits fairness and file contents. Deployment rollback treats testing, promotion, and rollback as atomic actions and does not model partial deployment. The circuit breaker models discrete failure counts and recovery probes without real service calls. Rover obstacle detection and braking are atomic, so sensor latency is not represented. Lease time advances in abstract ticks without clock drift. The watchdog models heartbeat resets but not message loss. Round-robin scheduling assumes one atomic step per turn, with no task execution time or fairness proof. Payment escrow assumes atomic financial transfers. API idempotency assumes a durable processed-ID set and counts effects rather than executing them. Emergency stop is an atomic logical latch without actuator delay. Broadcast models one publication and no delivery loss. Satellite separation uses one-dimensional positions and discrete unit moves, not orbital dynamics or continuous collision checking. The railway platform is a one-track, single-platform abstraction. Transaction commitment is atomic, without crash recovery or distributed participants. Sensor readings and gate decisions are updated together, with no sensor latency. The event log omits durable storage and concurrent writers. The drone model is one-dimensional, with no weather, dynamics, or GPS uncertainty. The two-factor login model assumes trusted successful checks and omits credential expiry. The water tank uses discrete fill and drain steps, without sensor faults. Resource allocation is atomic and does not model queues or starvation. Firmware verification is an abstract step without cryptographic checks or power failures. The train-signal model covers one railway block with atomic train entry and exit, not train braking or signaling delays. The charging station models atomic port allocation rather than physical electrical charging. The railway switch assumes instantaneous route locking and train passage without interlocking sensor faults. Feature rollout uses a discrete stage counter and atomic failure detection. Warehouse motion is one-dimensional without collisions or energy costs. Medical triage models patient accounting and single-patient treatment, not clinical priority or decisions. The spacecraft command gate represents a Boolean assessment without assessing its accuracy or freshness over real time. Railway route reservation abstracts away points, track geometry and multiple blocks. The approval workflow uses atomic decisions, not a real approval system. Checkpoint recovery models saved integer progress but not file integrity. Packet acknowledgements omit network latency and packet identities. The object-isolation example models only two objects and version-linked assessments. The satellite release model treats assessment outcomes as trusted Boolean inputs and does not model orbital dynamics. The dependency scheduler has three tasks and no parallel execution times. The elevator recalls to floor zero through abstract motion, without modeling braking or sensor failures. Message deduplication uses durable sets and no crash or message-loss behavior. The shared-corridor example assumes atomic robot entry and exit. The three-sensor voting model does not account for correlated sensor failures. Satellite contact windows represent logical open/close events rather than orbital visibility calculations or bandwidth limits. Permission revocation invalidates sessions atomically without distributed cache propagation. Traffic incidents trigger immediate lane closure and omit human reaction time and traffic flow. Spacecraft safe mode models immediate payload shutdown and idealized charging. The configuration example counts acknowledgements without modeling network partitions or leader terms. Robot motion is one-dimensional and each step consumes one unit of energy. Atomic file replacement omits disk failures and persistence semantics. The worker pool uses atomic starts and completions and does not check starvation. The five game examples model finite rule systems without rendering, player input devices, game AI, or networking. These choices deliberately keep the teaching models small.
 
@@ -140,37 +145,39 @@ cd examples/two-phase-commit
 java -cp "$TLA_TOOLS" tlc2.TLC -config TwoPhaseCommit.cfg TwoPhaseCommit.tla
 ```
 
-## Game and puzzle TLA+ specifications (examples 83–92)
+## Game and puzzle TLA+ specifications (examples 83–97)
 
-Ten examples now explore small, finite-state games and puzzles. Examples 83–87 include Tic-Tac-Toe, Nim, Maze Escape, Rock-Paper-Scissors, and Treasure Hunt. The newest additions are:
+Fifteen examples model small, finite-state games and puzzles. Earlier additions include Tic-Tac-Toe, Nim, Maze Escape, Rock-Paper-Scissors, Treasure Hunt, Monty Hall, River Crossing, Connect Three, Dice Race, and Tower of Hanoi.
 
-| Example | Model | Checked safety rules |
+The latest five are:
+
+| Example | Model | Main verification focus |
 |---|---|---|
-| 88 | Monty Hall | Host cannot reveal the prize or the originally chosen door |
-| 89 | River Crossing | Wolf and goat, or goat and cabbage, cannot be left together without the farmer |
-| 90 | Connect Three | Marks must obey gravity and both players cannot win simultaneously |
-| 91 | Dice Race | A declared winner must have reached the goal |
-| 92 | Tower of Hanoi | Moves take a top disc to a peg without a smaller disc |
+| 93 | Lights Out | Light toggling is finite and the press limit is respected |
+| 94 | Mastermind Mini | Declared victory means the hidden secret was guessed |
+| 95 | Sliding Tile | Sliding preserves the original four tile identities |
+| 96 | Memory Pair | Matched cards form complete pairs and selections are distinct |
+| 97 | Simon Sequence | Winning requires completing the full stored sequence |
 
-Each folder contains a TLA+ specification (`.tla`) and a TLC configuration (`.cfg`).
+Each example includes a TLA+ module (`.tla`) and a TLC configuration (`.cfg`).
 
-Run Monty Hall from the repository root:
-
-```bash
-cd examples/monty-hall-game
-java -cp "$TLA_TOOLS" tlc2.TLC -config MontyHallGame.cfg MontyHallGame.tla
-```
-
-Run the River Crossing puzzle separately, again from the repository root:
+To check Lights Out, run from the repository root:
 
 ```bash
-cd examples/river-crossing-puzzle
-java -cp "$TLA_TOOLS" tlc2.TLC -config RiverCrossingPuzzle.cfg RiverCrossingPuzzle.tla
+cd examples/lights-out-puzzle
+java -cp "$TLA_TOOLS" tlc2.TLC -config LightsOutPuzzle.cfg LightsOutPuzzle.tla
 ```
 
-The examples model rules, not graphical user interfaces or playable games. Monty Hall explores possible prize placements but does not estimate probability distributions; Dice Race models outcomes 1 and 2 rather than a six-sided die; Tower of Hanoi limits moves to seven and its invariants do not independently prove puzzle completion. All examples rely on finite-state abstractions.
+To check the Memory Pair game, return to the repository root and run:
 
-**Verification status:** GitHub uploads succeeded. TLC has not been executed for examples 88–92 in this update. Report a TLC PASS only after executing the corresponding configurations and inspecting the results.
+```bash
+cd examples/memory-pair-game
+java -cp "$TLA_TOOLS" tlc2.TLC -config MemoryPairGame.cfg MemoryPairGame.tla
+```
+
+These are formal rule models, not interactive graphical games. Lights Out is reduced to a 2-by-2 board, Mastermind uses two pegs and three colors, Sliding Tile uses a 2-by-2 board, Memory Pair uses four cards with fixed symbols, and Simon uses a predetermined three-step sequence. Safety invariants do not imply optimal strategy, game balance, or guaranteed completion.
+
+**Verification status:** The source and configuration files are committed to GitHub, but TLC has not been executed for examples 93–97 as part of this update. Do not interpret source commits as formal verification evidence.
 
 ## Specification pattern
 
